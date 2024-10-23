@@ -2,9 +2,8 @@ local fzf = require 'fzf-lua'
 
 local M = {}
 
--- Default configuration
 M.config = {
-	search_directory = vim.fn.getcwd(), -- Default to current working directory
+	projects_directory = vim.fn.getcwd(), -- Default to current working directory
 	path_level_label = 1, -- Default to show the first level
 }
 
@@ -13,8 +12,8 @@ M.project_map = {} -- Maps labels to paths for quick lookup
 
 function M.setup(opts)
 	if opts then
-		if opts.search_directory then
-			M.config.search_directory = opts.search_directory
+		if opts.projects_directory then
+			M.config.projects_directory = opts.projects_directory
 		end
 		if opts.path_level_label then
 			M.config.path_level_label = opts.path_level_label
@@ -24,9 +23,8 @@ function M.setup(opts)
 	M.preload_projects()
 end
 
--- Function to preload Git projects
 function M.preload_projects()
-	local cwd = M.config.search_directory
+	local cwd = M.config.projects_directory
 	local handle = io.popen('find ' .. cwd .. " -type d -name '.git' -exec dirname {} \\;")
 	local result = handle:read '*a'
 	handle:close()
@@ -68,10 +66,7 @@ function M.find_projects()
 
 						fzf.git_files {
 							cwd = project_path,
-              prompt = 'Select a file  ',
-              fzf_opts = {
-                ["--with-nth"] = "1",      -- Show only the filename
-              }
+							prompt = 'Select a file  ',
 						}
 					end
 				end
