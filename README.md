@@ -3,6 +3,7 @@
 An extension of [fzf-lua](https://github.com/ibhagwan/fzf-lua) that allows you to switch between projects. Inspired by emacs projectile.
 
 ### Demo
+https://github.com/user-attachments/assets/098eced5-4774-4fc6-8db0-b53c6eed9c43
 
 ### Installation
 - [vim-plug](https://github.com/junegunn/vim-plug)
