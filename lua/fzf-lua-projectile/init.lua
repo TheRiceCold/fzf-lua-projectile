@@ -9,6 +9,7 @@ M.config = {
 }
 
 M.projects = {}
+M.project_map = {} -- Maps labels to paths for quick lookup
 
 function M.setup(opts)
 	if opts then
@@ -31,24 +32,26 @@ function M.preload_projects()
 	handle:close()
 
 	M.projects = {}
+	M.project_map = {}
+
 	for project in string.gmatch(result, '[^\r\n]+') do
-		-- Split the project path into segments
 		local segments = {}
 		for segment in string.gmatch(project, '[^/]+') do
 			table.insert(segments, segment)
 		end
 
-		-- Get the desired path level (cutting off the upper directories)
 		local level = M.config.path_level_label
-		local start_index = math.max(#segments - level + 1, 1) -- Calculate starting index for display
-		local formatted_label = table.concat(segments, '/', start_index) -- Join segments for label
+		local start_index = math.max(#segments - level + 1, 1)
+		local formatted_label = table.concat(segments, '/', start_index)
 
 		table.insert(M.projects, { path = project, label = formatted_label })
+		M.project_map[formatted_label] = project -- Add to the map for quick lookup
 	end
 end
 
 function M.find_projects()
 	local project_labels = {}
+
 	for _, project in ipairs(M.projects) do
 		table.insert(project_labels, project.label)
 	end
@@ -58,19 +61,18 @@ function M.find_projects()
 		actions = {
 			['default'] = function(selected)
 				if selected and #selected > 0 then
-					local selected_label = selected[1]
-					for _, project in ipairs(M.projects) do
-						if project.label == selected_label then
-							local project_path = project.path
-							vim.cmd('cd ' .. project_path)
-							print('Changed directory to ' .. project_path)
+					local project_path = M.project_map[selected[1]] -- Direct lookup using the map
+					if project_path then
+						vim.cmd('cd ' .. project_path)
+						print('Changed directory to ' .. project_path)
 
-							fzf.git_files {
-								cwd = project_path,
-                prompt = 'Select a file  ',
-							}
-							break
-						end
+						fzf.git_files {
+							cwd = project_path,
+              prompt = 'Select a file  ',
+              fzf_opts = {
+                ["--with-nth"] = "1",      -- Show only the filename
+              }
+						}
 					end
 				end
 			end,
