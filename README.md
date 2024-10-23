@@ -27,7 +27,7 @@ use { "TheRiceCold/fzf-lua-projectile", config = function() require('fzf-lua-pro
 ``` lua
 require'fzf-lua-projectile'.setup {
   path_level_label = 2,                        -- Show up to 2 levels of the directory path
-  project_directory = 'path/to/your/projects'  -- Set the desired path here
+  projects_directory = 'path/to/your/projects'  -- Set the desired path here
 }
 ```
 
