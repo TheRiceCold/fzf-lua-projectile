@@ -11,6 +11,7 @@ M.config = {
 -- Store found projects
 M.projects = {}
 
+-- Function to setup the plugin with user configuration
 function M.setup(opts)
 	if opts then
 		if opts.search_directory then
@@ -21,9 +22,11 @@ function M.setup(opts)
 		end
 	end
 
+	-- Preload Git projects
 	M.preload_projects()
 end
 
+-- Function to preload Git projects
 function M.preload_projects()
 	local cwd = M.config.search_directory
 	local handle = io.popen('find ' .. cwd .. " -type d -name '.git' -exec dirname {} \\;")
@@ -32,34 +35,27 @@ function M.preload_projects()
 
 	M.projects = {}
 	for project in string.gmatch(result, '[^\r\n]+') do
-		-- Split the project path into segments
-		local segments = {}
-		for segment in string.gmatch(project, '[^/]+') do
-			table.insert(segments, segment)
-		end
-
-		-- Get the desired path level
-		local level = M.config.path_level_label
-		local start_index = math.max(#segments - level + 1, 1) -- Calculate starting index for display
-		local formatted_project = table.concat(segments, '/', start_index) -- Join segments from start_index to the end
-		table.insert(M.projects, formatted_project)
+		-- Store the full path
+		table.insert(M.projects, project)
 	end
 end
 
+-- Function to search for Git projects
 function M.find_projects()
 	fzf.fzf_exec(M.projects, {
-		preview = false,
 		prompt = 'Choose a project  ',
 		actions = {
 			['default'] = function(selected)
-				if selected and selected[1] then
-					local project_path = selected[1]
-
+				if selected and #selected > 0 then
+					local project_path = selected[1] -- Get the full path from the selected table
+					-- Change to the selected project directory
 					vim.cmd('cd ' .. project_path)
+					print('Changed directory to ' .. project_path)
 
+					-- Run fzf-lua's built-in git_files command
 					fzf.git_files {
-            cwd = project_path,
-						prompt = 'Select a File: ',
+						prompt = 'Select a file: ',
+						cwd = project_path, -- Ensure it searches in the correct directory
 					}
 				end
 			end,
