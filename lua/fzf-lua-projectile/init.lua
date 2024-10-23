@@ -26,7 +26,7 @@ end
 
 function M.preload_projects()
   local cwd = M.config.search_directory
-  local handle = io.popen('find ' .. cwd .. ' -type d -name .git | xargs -n1 dirname')
+  local handle = io.popen('find ' .. cwd .. " -type d -name '.git' -exec dirname {} \\;")
   local result = handle:read('*a')
   handle:close()
 
@@ -40,7 +40,7 @@ function M.preload_projects()
 
     -- Get the desired path level
     local level = M.config.path_level_label
-    local start_index = math.max(#segments - level, 1)  -- Calculate starting index for display
+    local start_index = math.max(#segments - level + 1, 1)  -- Calculate starting index for display
     local formatted_project = table.concat(segments, '/', start_index)  -- Join segments from start_index to the end
     table.insert(M.projects, formatted_project)
   end
@@ -50,18 +50,16 @@ function M.find_projects()
   fzf.fzf_exec(M.projects, {
     preview = false,
     prompt = 'Choose a project  ',
-    actions = {
-      ['default'] = function(selected)
-        if selected then
-          vim.cmd('cd ' .. selected)
+    sink = function(selected)
+      if selected then
+        vim.cmd('cd ' .. selected)
 
-          fzf.git_files({
-            cwd = selected,
-            prompt = 'Select a file  ',
-          })
-        end
+        fzf.git_files({
+          prompt = 'Select a file  ',
+          cwd = selected,
+        })
       end
-    },
+    end,
   })
 end
 
