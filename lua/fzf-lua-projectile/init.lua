@@ -5,7 +5,7 @@ local M = {}
 -- Default configuration
 M.config = {
   search_directory = vim.fn.getcwd(),  -- Default to current working directory
-  path_level_label = 1,                 -- Default to show the first level
+  path_level_label = 1,                -- Default to show the first level
 }
 
 -- Store found projects
@@ -26,7 +26,7 @@ end
 
 function M.preload_projects()
   local cwd = M.config.search_directory
-  local handle = io.popen('find ' .. cwd .. " -type d -name '.git' -exec dirname {} \\;")
+  local handle = io.popen('find ' .. cwd .. ' -type d -name .git | xargs -n1 dirname')
   local result = handle:read('*a')
   handle:close()
 
@@ -38,9 +38,10 @@ function M.preload_projects()
       table.insert(segments, segment)
     end
 
-    -- Get the desired path level (default to the entire path if out of range)
-    local level = math.min(#segments, M.config.path_level_label)
-    local formatted_project = table.concat(segments, '/', 1, level)  -- Join segments up to the specified level
+    -- Get the desired path level
+    local level = M.config.path_level_label
+    local start_index = math.max(#segments - level, 1)  -- Calculate starting index for display
+    local formatted_project = table.concat(segments, "/", start_index)  -- Join segments from start_index to the end
     table.insert(M.projects, formatted_project)
   end
 end
