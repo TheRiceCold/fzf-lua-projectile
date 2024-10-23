@@ -41,25 +41,27 @@ function M.preload_projects()
     -- Get the desired path level
     local level = M.config.path_level_label
     local start_index = math.max(#segments - level, 1)  -- Calculate starting index for display
-    local formatted_project = table.concat(segments, "/", start_index)  -- Join segments from start_index to the end
+    local formatted_project = table.concat(segments, '/', start_index)  -- Join segments from start_index to the end
     table.insert(M.projects, formatted_project)
   end
 end
 
 function M.find_projects()
   fzf.fzf_exec(M.projects, {
-    prompt = 'Choose a project  ',
     preview = false,
-    sink = function(selected)
-      if selected then
-        vim.cmd('cd ' .. selected)
+    prompt = 'Choose a project  ',
+    actions = {
+      ['default'] = function(selected)
+        if selected then
+          vim.cmd('cd ' .. selected)
 
-        fzf.git_files({
-          cwd = selected,
-          prompt = 'Select a file  ',
-        })
+          fzf.git_files({
+            cwd = selected,
+            prompt = 'Select a file  ',
+          })
+        end
       end
-    end,
+    },
   })
 end
 
