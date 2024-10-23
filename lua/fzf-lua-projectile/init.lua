@@ -8,10 +8,8 @@ M.config = {
 	path_level_label = 1, -- Default to show the first level
 }
 
--- Store found projects
 M.projects = {}
 
--- Function to setup the plugin with user configuration
 function M.setup(opts)
 	if opts then
 		if opts.search_directory then
@@ -22,7 +20,6 @@ function M.setup(opts)
 		end
 	end
 
-	-- Preload Git projects
 	M.preload_projects()
 end
 
@@ -35,28 +32,46 @@ function M.preload_projects()
 
 	M.projects = {}
 	for project in string.gmatch(result, '[^\r\n]+') do
-		-- Store the full path
-		table.insert(M.projects, project)
+		-- Split the project path into segments
+		local segments = {}
+		for segment in string.gmatch(project, '[^/]+') do
+			table.insert(segments, segment)
+		end
+
+		-- Get the desired path level (cutting off the upper directories)
+		local level = M.config.path_level_label
+		local start_index = math.max(#segments - level + 1, 1) -- Calculate starting index for display
+		local formatted_label = table.concat(segments, '/', start_index) -- Join segments for label
+
+		table.insert(M.projects, { path = project, label = formatted_label })
 	end
 end
 
--- Function to search for Git projects
 function M.find_projects()
-	fzf.fzf_exec(M.projects, {
+	local project_labels = {}
+	for _, project in ipairs(M.projects) do
+		table.insert(project_labels, project.label)
+	end
+
+	fzf.fzf_exec(project_labels, {
 		prompt = 'Choose a project  ',
 		actions = {
 			['default'] = function(selected)
 				if selected and #selected > 0 then
-					local project_path = selected[1] -- Get the full path from the selected table
-					-- Change to the selected project directory
-					vim.cmd('cd ' .. project_path)
-					print('Changed directory to ' .. project_path)
+					local selected_label = selected[1]
+					for _, project in ipairs(M.projects) do
+						if project.label == selected_label then
+							local project_path = project.path
+							vim.cmd('cd ' .. project_path)
+							print('Changed directory to ' .. project_path)
 
-					-- Run fzf-lua's built-in git_files command
-					fzf.git_files {
-						prompt = 'Select a file: ',
-						cwd = project_path, -- Ensure it searches in the correct directory
-					}
+							fzf.git_files {
+								cwd = project_path,
+                prompt = 'Select a file  ',
+							}
+							break
+						end
+					end
 				end
 			end,
 		},
