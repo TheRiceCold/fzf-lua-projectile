@@ -55,20 +55,19 @@ function M.find_projects()
 
         fzf.git_files({
           cwd = selected,
-          prompt = 'Select a File: ',
+          prompt = 'Select a file  ',
         })
       end
     end,
   })
 end
 
-vim.api.nvim_create_user_command('FzfGitProjects', function()
+vim.api.nvim_create_user_command('FzfProjectile', function()
   M.find_projects()
 end, {})
 
-vim.api.nvim_create_user_command('FzfRefreshProjects', function()
+vim.api.nvim_create_user_command('FzfProjectileRefresh', function()
   M.preload_projects()
-  print('Git projects refreshed.')
 end, {})
 
 return M
