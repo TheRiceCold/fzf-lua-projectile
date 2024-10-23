@@ -26,7 +26,7 @@ end
 
 function M.preload_projects()
   local cwd = M.config.search_directory
-  local handle = io.popen('find ' .. cwd .. ' -type d -name .git | xargs -n1 dirname')
+  local handle = io.popen('find ' .. cwd .. " -type d -name '.git' -exec dirname {} \\;")
   local result = handle:read('*a')
   handle:close()
 
