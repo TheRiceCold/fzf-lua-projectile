@@ -52,15 +52,14 @@ function M.find_projects()
 		prompt = 'Choose a project  ',
 		actions = {
 			['default'] = function(selected)
-				if selected then
-					-- Change to the selected project directory
-					vim.cmd('cd ' .. selected)
-					print('Changed directory to ' .. selected)
+				if selected and selected[1] then
+					local project_path = selected[1]
 
-					-- Run fzf-lua's built-in git_files command
+					vim.cmd('cd ' .. project_path)
+
 					fzf.git_files {
+            cwd = project_path,
 						prompt = 'Select a File: ',
-						cwd = selected, -- Ensure it searches in the correct directory
 					}
 				end
 			end,
